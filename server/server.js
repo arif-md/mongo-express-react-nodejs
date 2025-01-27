@@ -1,14 +1,26 @@
 const express = require("express");
+const bodyParser = require('body-parser');
 const cors = require("cors");
 require("./db/config");
 const User = require('./db/User');
 const Product = require("./db/Product")
 const Jwt = require('jsonwebtoken');
 const jwtKey = 'e-com';
+const corsOptions = {
+    origin: 'http://localhost:3000'
+}
+//init app
 const app = express();
 
+// parse requests of content-type - application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// parse requests of content-type - application/json
 app.use(express.json());
-app.use(cors());
+app.use(cors(corsOptions));
+
+//Setup server PORT
+const port = process.env.PORT || 5000;
 
 app.post("/register", async (req, resp) => {
     let user = new User(req.body);
@@ -103,4 +115,15 @@ app.get("/search/:key", async (req, resp) => {
     resp.send(result);
 })
 
-app.listen(5000);
+// Handle invalid OR 404 request
+app.use((_, res) => {
+    res.status(404).json({
+    success: false,
+    message: "Invalid Request",
+    });
+});
+
+// Launch app to listen to specified port
+app.listen(port, () => {
+    console.log(`Node is running on Port: ${port}`);
+});
